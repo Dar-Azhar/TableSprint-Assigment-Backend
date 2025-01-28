@@ -1,4 +1,6 @@
-{
+
+
+  {
     "version": 2,
     "builds": [
       {
@@ -6,10 +8,11 @@
         "use": "@vercel/node"
       }
     ],
-    "env": {
-      "DATABASE_URL": "@database_url",
-      "SUPABASE_URL": "@supabase_url",
-      "SUPABASE_KEY": "@supabase_key"
-    }
+    "routes": [
+      {
+        "src": "/(.*)",
+        "dest": "index.js"
+      }
+    ]
   }
   
