@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Category {
+  id            Int           @id @default(autoincrement())
+  categoryName  String
+  image         String        @default("")
+  status        String        @default("active")
+  sequence      Int?
+  createdAt     DateTime      @default(now()) @db.Timestamptz(6)
+  products      Product[]     @relation("CategoryProducts")
+  subcategories Subcategory[] @relation("CategorySubcategories")
+}
+
+model Product {
+  id            Int         @id @default(autoincrement())
+  createdAt     DateTime    @default(now()) @db.Timestamptz(6)
+  productName   String
+  categoryId    Int
+  image         String      @default("")
+  status        String      @default("active")
+  sequence      Int         @default(0)
+  subcategoryId Int
+  category      Category    @relation("CategoryProducts", fields: [categoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subcategory   Subcategory @relation("SubcategoryProducts", fields: [subcategoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Subcategory {
+  id              Int       @id @default(autoincrement())
+  subcategoryName String
+  image           String    @default("")
+  status          String    @default("active")
+  sequence        Int       @default(0)
+  categoryId      Int
+  products        Product[] @relation("SubcategoryProducts")
+  category        Category  @relation("CategorySubcategories", fields: [categoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model users {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email      String   @unique
+  password   String   @default("")
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+}
