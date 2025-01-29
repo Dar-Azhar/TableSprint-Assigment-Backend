@@ -41,13 +41,12 @@ const multer = require('multer');
 const cloudinary = require('../cloudinary');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
-// Configure Cloudinary storage for multer
 const storage = new CloudinaryStorage({
-    cloudinary: cloudinary, // Cloudinary instance
+    cloudinary: cloudinary,
     params: {
-        folder: 'uploads/images', 
-        allowed_formats: ['jpg', 'jpeg', 'png', 'gif'], 
-        public_id: (req, file) => `${Date.now()}-${file.originalname}`, 
+        folder: 'uploads/images',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'gif'],
+        public_id: (req, file) => `${Date.now()}-${file.originalname}`,
     },
 });
 
