@@ -35,7 +35,7 @@ const getAllProducts = async (req, res) => {
         category: {
           select: {
             id: true,
-            categoryName: true, l
+            categoryName: true, 
           },
         },
         subcategory: {
