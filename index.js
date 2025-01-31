@@ -12,7 +12,7 @@ dotenv.config();
 const app = express();
 
 const corsOptions = {
-  origin: ['*', 'http://localhost:3000',  'https://tablesprint22.netlify.app'],
+  origin: ['*', 'http://localhost:3000', 'https://tablesprint-assigment-frontend.onrender.com/',  'https://tablesprint22.netlify.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true,
 };
