@@ -1,19 +1,18 @@
 const prisma = require("../../Prisma-Client");
 
 const createSubcategory = async (req, res) => {
-    const { subcategoryName, status, sequence, categoryId } = req.body;
+    const { subcategoryName, sequence, categoryId } = req.body;
 
-    if (!subcategoryName || !req.file || !status || !sequence || !categoryId) {
-        return res.status(400).json({ error: "subcategoryName, image, status, sequence, and categoryId are required" });
+    if (!subcategoryName || !req.file || !sequence || !categoryId) {
+        return res.status(400).json({ error: "subcategoryName, image, sequence, and categoryId are required" });
     }
 
     try {
         const imageUrl = req.file.path || req.file.secure_url;
-        const newSubcategory = await prisma.Subcategory.create({
+        const newSubcategory = await prisma.subcategory.create({
             data: {
                 subcategoryName,
                 image: imageUrl,
-                status,
                 sequence: parseInt(sequence),
                 categoryId: parseInt(categoryId),
             },
@@ -29,13 +28,24 @@ const createSubcategory = async (req, res) => {
 
 const getAllSubcategories = async (req, res) => {
     try {
-        const subcategories = await prisma.Subcategory.findMany();
+        const subcategories = await prisma.subcategory.findMany({
+            include: {
+                category: {
+                    select: {
+                        id: true,  
+                        categoryName: true, 
+                    },
+                },
+            },
+        });
+
         return res.status(200).json(subcategories);
     } catch (error) {
-        res.status(500).json({ error: error.message });
-        return console.log(error);
+        console.error("Error fetching subcategories:", error);
+        return res.status(500).json({ error: error.message });
     }
 };
+
 
 const getSubcategoryById = async (req, res) => {
     const { id } = req.params;
@@ -57,22 +67,34 @@ const getSubcategoryById = async (req, res) => {
 
 const updateSubcategory = async (req, res) => {
     const { id } = req.params;
-    const { subcategoryName, status, sequence, categoryId } = req.body;
-    let imageUrl = null;
+    const { subcategoryName, status, sequence, categoryId, imageUrl } = req.body;
+    let image = null;
 
     try {
         if (req.file) {
-            imageUrl = req.file.path || req.file.secure_url;
+            image = req.file.path || req.file.secure_url;
         }
 
-        const updatedSubcategory = await prisma.Subcategory.update({
+        if (!image && imageUrl) {
+            image = imageUrl; 
+        }
+
+        if (!subcategoryName || !status || !sequence || !image || !categoryId) {
+            return res.status(400).json({ error: "subcategoryName, status, sequence, image, and categoryId are required" });
+        }
+
+        const updatedSubcategory = await prisma.subcategory.update({
             where: { id: parseInt(id) },
             data: {
                 subcategoryName,
                 status,
                 sequence: parseInt(sequence),
-                categoryId: parseInt(categoryId),
-                image: imageUrl || undefined,
+                category: {
+                    connect: {
+                        id: parseInt(categoryId), 
+                    }
+                },
+                image: image || undefined, 
             },
         });
 
@@ -83,10 +105,13 @@ const updateSubcategory = async (req, res) => {
     }
 };
 
+
+
+
 const deleteSubcategory = async (req, res) => {
     const { id } = req.params;
     try {
-        await prisma.Subcategory.delete({
+        await prisma.subcategory.delete({
             where: { id: parseInt(id) },
         });
         return res.status(200).json({ message: "Subcategory deleted successfully" });

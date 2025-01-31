@@ -1,22 +1,22 @@
-const { prisma } = require("../../Prisma-Client");
+const prisma = require("../../Prisma-Client");
 
 const createProduct = async (req, res) => {
-  const { productName, categoryId, subcategoryId, status, sequence } = req.body;
-
-  if (!productName || !req.file || !status || !sequence || !categoryId || !subcategoryId) {
-    return res.status(400).json({ error: "productName, image, status, sequence, categoryId, and subcategoryId are required" });
-  }
+  const { productName, categoryId, categoryName, subcategoryName, subcategoryId } = req.body;
+  console.log(req.body);
+  // if (!productName || !req.file || !status || !sequence || !categoryId || !subcategoryId) {
+  //   return res.status(400).json({ error: "productName, categoryId, categoryName, subcategoryName, subcategoryId, status, sequence are required" });
+  // }
 
   try {
     const imageUrl = req.file.path || req.file.secure_url;
-    const newProduct = await prisma.products.create({
+    const newProduct = await prisma.product.create({
       data: {
-        product_name: productName,
-        category_id: parseInt(categoryId),
-        subcategory_id: parseInt(subcategoryId),
+        productName: productName,
+        categoryId: parseInt(categoryId),
+        subcategoryId: parseInt(subcategoryId),
         image: imageUrl,
-        status,
-        sequence: parseInt(sequence),
+        categoryName,
+        subcategoryName,
       },
     });
 
@@ -29,26 +29,40 @@ const createProduct = async (req, res) => {
 
 const getAllProducts = async (req, res) => {
   try {
-    const products = await prisma.products.findMany({
+    const products = await prisma.product.findMany({
+
       include: {
-        categories: true,
-        subcategories: true,
-      },
+        category: {
+          select: {
+            id: true,
+            categoryName: true, l
+          },
+        },
+        subcategory: {
+          select: {
+            id: true,
+            subcategoryName: true,
+          },
+        },
+      }
     });
+
     return res.status(200).json(products);
   } catch (error) {
+    console.error("Error fetching products:", error);
     return res.status(500).json({ error: error.message });
   }
 };
 
+
 const getProductById = async (req, res) => {
   const { id } = req.params;
   try {
-    const product = await prisma.products.findUnique({
+    const product = await prisma.product.findUnique({
       where: { id: parseInt(id) },
       include: {
-        categories: true,
-        subcategories: true,
+        category: true,
+        subcategory: true,
       },
     });
     if (!product) {
@@ -56,28 +70,27 @@ const getProductById = async (req, res) => {
     }
     return res.status(200).json(product);
   } catch (error) {
+    console.error(error)
     return res.status(500).json({ error: error.message });
   }
 };
 
 const updateProduct = async (req, res) => {
   const { id } = req.params;
-  const { productName, categoryId, subcategoryId, status, sequence } = req.body;
+  const { productName, categoryId, subcategoryId, status } = req.body;
   let imageUrl = null;
+  console.log(req.body);
 
   try {
-    if (req.file) {
-      imageUrl = req.file.path || req.file.secure_url;
-    }
-    const updatedProduct = await prisma.products.update({
+
+    const updatedProduct = await prisma.product.update({
       where: { id: parseInt(id) },
       data: {
-        product_name: productName,
-        category_id: parseInt(categoryId),
-        subcategory_id: parseInt(subcategoryId),
+        productName: productName,
+        categoryId: parseInt(categoryId),
+        subcategoryId: parseInt(subcategoryId),
         image: imageUrl || undefined,
         status,
-        sequence: parseInt(sequence),
       },
     });
 
@@ -91,7 +104,7 @@ const updateProduct = async (req, res) => {
 const deleteProduct = async (req, res) => {
   const { id } = req.params;
   try {
-    await prisma.products.delete({
+    await prisma.product.delete({
       where: { id: parseInt(id) },
     });
     return res.status(200).json({ message: "Product deleted successfully" });

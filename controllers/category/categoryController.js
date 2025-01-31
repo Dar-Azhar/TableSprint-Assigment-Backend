@@ -1,17 +1,15 @@
 const prisma = require("../../Prisma-Client");
 const createCategory = async (req, res) => {
-    const { categoryName, status, sequence } = req.body;
-    if (!categoryName || !req.file || !status || !sequence) {
-        return res.status(400).json({ error: "categoryName, image, status, and sequence are required" });
+    const { categoryName, sequence } = req.body;
+    if (!categoryName || !req.file || !sequence) {
+        return res.status(400).json({ error: "categoryName, image, and sequence are required" });
     }
     try {
-        console.log("Uploading image...");
         const imageUrl = req.file.path || req.file.secure_url;
         const newCategory = await prisma.category.create({
             data: {
                 categoryName,
                 image: imageUrl,
-                status,
                 sequence: parseInt(sequence),
             },
         });
@@ -56,6 +54,7 @@ const updateCategory = async (req, res) => {
         if (req.file) {
             imageUrl = req.file.path || req.file.secure_url;
         }
+       
         const updatedCategory = await prisma.category.update({
             where: { id: parseInt(id) },
             data: {
@@ -76,14 +75,24 @@ const updateCategory = async (req, res) => {
 const deleteCategory = async (req, res) => {
     const { id } = req.params;
     try {
-        await prisma.category.delete({
-            where: { id: parseInt(id) },
+        await prisma.product.deleteMany({
+            where: { categoryId: parseInt(id) }
         });
-        return res.status(200).json({ message: "Category deleted successfully" });
+
+        await prisma.subcategory.deleteMany({
+            where: { categoryId: parseInt(id) }
+        });
+        await prisma.category.delete({
+            where: { id: parseInt(id) }
+        });
+
+        return res.status(200).json({ message: "Category and related products/subcategories deleted successfully" });
     } catch (error) {
+        console.error("Error deleting category:", error);
         return res.status(500).json({ error: error.message });
     }
 };
+
 
 module.exports = {
     createCategory,
